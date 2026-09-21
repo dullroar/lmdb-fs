@@ -10,8 +10,8 @@ from pathlib import Path
 
 import pyfuse3
 
-from ..model import FileEntry
-from ..query import SemanticQuery
+from ..paths import PathError, decode_component
+from ..query import SemanticQuery, virtual_filename
 from .inode_table import DirectoryRef, FileRef, InodeTable
 
 
@@ -24,7 +24,9 @@ class SemanticFSOperations(pyfuse3.Operations):
         self.inodes = InodeTable()
         self._stat_path = Path(stat_path)
         self._open_files: dict[int, int] = {}
+        self._open_dirs: dict[int, list[tuple[bytes, int]]] = {}
         self._next_handle = 1
+        self._next_directory_handle = 1 << 32
 
     def _ref(self, inode: int) -> DirectoryRef | FileRef:
         try:
@@ -86,20 +88,58 @@ class SemanticFSOperations(pyfuse3.Operations):
             return self._attrs(int(parent_inode))
         if name == b"..":
             return self._attrs(parent.parent_inode or int(pyfuse3.ROOT_INODE))
-        for child_name, child_inode in self._children(int(parent_inode)):
-            if child_name == name:
-                return self._attrs(child_inode)
+        try:
+            child_name = name.decode("utf-8")
+        except UnicodeDecodeError as exc:
+            raise pyfuse3.FUSEError(errno.ENOENT) from exc
+        # Avoid building (and especially enumerating) the complete parent
+        # listing for a direct path lookup. Root can legitimately contain every
+        # indexed file, so lookup must be proportional to the requested entry.
+        if "--" in child_name:
+            node_id_text, _ = child_name.split("--", 1)
+            if node_id_text.isdecimal():
+                try:
+                    node = self.query.backend.get_node(int(node_id_text))
+                except KeyError:
+                    pass
+                else:
+                    if child_name == virtual_filename(node.node_id, node.display_name) and all(
+                        node.metadata.get(facet) == value for facet, value in parent.predicates
+                    ):
+                        inode = self.inodes.file(node.node_id, int(parent_inode))
+                        return self._attrs(inode)
+        try:
+            facet, value = decode_component(child_name)
+            if facet in self.query.backend.facets and facet not in {facet for facet, _ in parent.predicates}:
+                predicates = self.query.child_predicates(parent.predicates, facet, value)
+                if self.query.match(predicates):
+                    inode = self.inodes.directory(predicates, int(parent_inode))
+                    return self._attrs(inode)
+        except PathError:
+            pass
         raise pyfuse3.FUSEError(errno.ENOENT)
 
     async def opendir(self, inode, ctx):  # type: ignore[no-untyped-def]
         self._dir(int(inode))
-        return pyfuse3.FileHandleT(inode)
+        # A kernel directory read is paged. Recomputing a large virtual listing
+        # on every page makes a million-entry directory catastrophically O(n²).
+        # Keep one immutable enumeration snapshot for this open directory.
+        handle = self._next_directory_handle
+        self._next_directory_handle += 1
+        self._open_dirs[handle] = self._children(int(inode))
+        return pyfuse3.FileHandleT(handle)
 
     async def readdir(self, fh, start_id, token):  # type: ignore[no-untyped-def]
-        entries = self._children(int(fh))
+        try:
+            entries = self._open_dirs[int(fh)]
+        except KeyError as exc:
+            raise pyfuse3.FUSEError(errno.EBADF) from exc
         for index, (name, inode) in enumerate(entries[start_id:], start=start_id + 1):
             if not pyfuse3.readdir_reply(token, name, self._attrs(inode), index):
                 return
+
+    async def releasedir(self, fh):  # type: ignore[no-untyped-def]
+        self._open_dirs.pop(int(fh), None)
 
     async def open(self, inode, flags, ctx):  # type: ignore[no-untyped-def]
         ref = self._ref(int(inode))

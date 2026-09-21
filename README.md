@@ -58,7 +58,8 @@ uv run semanticfs build-index \
 mkdir /tmp/semanticfs-mount
 uv run semanticfs mount \
   --db /tmp/semanticfs-corpus/index.lmdb \
-  --mountpoint /tmp/semanticfs-mount
+  --mountpoint /tmp/semanticfs-mount \
+  --cache-size 1024 --cache-max-nodes 10000
 ```
 
 In another shell, ordinary tools can use it directly:
@@ -78,3 +79,7 @@ The full real-mount test is intentionally opt-in:
 ```bash
 SEMANTICFS_RUN_FUSE_TESTS=1 uv run pytest -m integration
 ```
+
+`--cache-size 0` or `--no-cache` disables caching. A cached result is also
+bounded by `--cache-max-nodes` (10,000 by default), so a root or broad query
+cannot consume the cache with a million virtual file entries.

@@ -43,6 +43,25 @@ def test_operations_expose_directory_and_payload(tmp_path: Path) -> None:
         asyncio.run(ops.release(info.fh))
 
 
+def test_direct_facet_lookup_does_not_enumerate_parent(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
+    ops = _operations(tmp_path)
+
+    def fail_listing(*args, **kwargs):  # type: ignore[no-untyped-def]
+        raise AssertionError("lookup must not enumerate a broad parent")
+
+    monkeypatch.setattr(ops.query, "listing", fail_listing)
+    attrs = asyncio.run(ops.lookup(pyfuse3.ROOT_INODE, b"year=2026", None))
+    assert attrs.st_mode & 0o170000 == 0o040000
+
+
+def test_opendir_keeps_and_releases_a_snapshot(tmp_path: Path) -> None:
+    ops = _operations(tmp_path)
+    handle = asyncio.run(ops.opendir(pyfuse3.ROOT_INODE, None))
+    assert int(handle) in ops._open_dirs
+    asyncio.run(ops.releasedir(handle))
+    assert int(handle) not in ops._open_dirs
+
+
 @pytest.mark.parametrize("operation", ["mkdir", "unlink", "rmdir"])
 def test_mutations_report_erofs(tmp_path: Path, operation: str) -> None:
     ops = _operations(tmp_path)

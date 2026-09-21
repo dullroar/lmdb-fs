@@ -157,17 +157,27 @@ class LMDBBackend(MetadataBackend):
                 return frozenset()
             return frozenset(_NODE_ID.unpack(value)[0] for value in cursor.iternext_dup(keys=False))
 
+    def _posting_count(self, txn: lmdb.Transaction, predicate: tuple[str, str]) -> int:
+        with txn.cursor(db=self._postings_db) as cursor:
+            return cursor.count() if cursor.set_key(_posting_key(*predicate)) else 0
+
     def match(self, predicates: PredicateKey) -> NodeSet:
         if not predicates:
             return self.all_node_ids()
         with self._env.begin() as txn:
-            postings = [self._posting(txn, predicate) for predicate in predicates]
-        postings.sort(key=len)
-        result = postings[0]
-        for posting in postings[1:]:
-            result = result.intersection(posting)
-            if not result:
-                break
+            sized = [(self._posting_count(txn, predicate), predicate) for predicate in predicates]
+            if any(size == 0 for size, _ in sized):
+                return frozenset()
+            sized.sort(key=lambda item: item[0])
+            result = self._posting(txn, sized[0][1])
+            for _, predicate in sized[1:]:
+                key = _posting_key(*predicate)
+                with txn.cursor(db=self._postings_db) as cursor:
+                    result = frozenset(
+                        node_id for node_id in result if cursor.set_key_dup(key, _node_key(node_id))
+                    )
+                if not result:
+                    break
         return frozenset(result)
 
     def remaining_facets(

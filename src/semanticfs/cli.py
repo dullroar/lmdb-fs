@@ -30,7 +30,10 @@ def _build_index(args: argparse.Namespace) -> int:
 
 def _mount(args: argparse.Namespace) -> int:
     backend = LMDBBackend(args.db)
-    operations = SemanticFSOperations(SemanticQuery(backend), stat_path=args.db)
+    cache_size = 0 if args.no_cache else args.cache_size
+    operations = SemanticFSOperations(
+        SemanticQuery(backend, cache_size=cache_size, cache_max_nodes=args.cache_max_nodes), stat_path=args.db
+    )
     options = set(pyfuse3.default_options)
     options.add("fsname=semanticfs")
     if args.debug:
@@ -64,6 +67,9 @@ def parser() -> argparse.ArgumentParser:
     mount.add_argument("--db", type=Path, required=True)
     mount.add_argument("--mountpoint", type=Path, required=True)
     mount.add_argument("--debug", action="store_true")
+    mount.add_argument("--cache-size", type=int, default=1024)
+    mount.add_argument("--cache-max-nodes", type=int, default=10_000)
+    mount.add_argument("--no-cache", action="store_true")
     mount.set_defaults(handler=_mount)
 
     unmount = commands.add_parser("unmount", help="unmount a SemanticFS mount")
