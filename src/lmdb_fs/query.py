@@ -17,7 +17,7 @@ def virtual_filename(node_id: int, display_name: str) -> str:
     return f"{node_id}--{encode_component('name', display_name).split('=', 1)[1]}"
 
 
-class SemanticQuery:
+class LMDBFSQuery:
     """Pure faceted directory construction; no knowledge of LMDB or FUSE."""
 
     def __init__(

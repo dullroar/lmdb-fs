@@ -71,7 +71,7 @@ class LMDBBackend(MetadataBackend):
             raw_facets = txn.get(_META_FACETS)
         if raw_facets is None:
             self.close()
-            raise ValueError(f"{self.path} is not a SemanticFS index")
+            raise ValueError(f"{self.path} is not an lmdb-fs index")
         self._facets = frozenset(json.loads(raw_facets))
 
     @classmethod

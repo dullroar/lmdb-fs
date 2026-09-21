@@ -13,8 +13,8 @@ import pytest
 pytestmark = pytest.mark.integration
 
 
-@pytest.mark.skipif(os.environ.get("SEMANTICFS_RUN_FUSE_TESTS") != "1", reason="set SEMANTICFS_RUN_FUSE_TESTS=1")
-def test_mounted_semanticfs_supports_normal_reads(tmp_path: Path) -> None:
+@pytest.mark.skipif(os.environ.get("LMDB_FS_RUN_FUSE_TESTS") != "1", reason="set LMDB_FS_RUN_FUSE_TESTS=1")
+def test_mounted_lmdb_fs_supports_normal_reads(tmp_path: Path) -> None:
     root = Path(__file__).parents[1]
     corpus = tmp_path / "corpus"
     mountpoint = tmp_path / "mount"
@@ -23,12 +23,12 @@ def test_mounted_semanticfs_supports_normal_reads(tmp_path: Path) -> None:
         check=True,
     )
     subprocess.run(
-        [sys.executable, "-m", "semanticfs.cli", "build-index", "--metadata", corpus / "metadata.jsonl", "--db", corpus / "index.lmdb"],
+        [sys.executable, "-m", "lmdb_fs.cli", "build-index", "--metadata", corpus / "metadata.jsonl", "--db", corpus / "index.lmdb"],
         check=True,
     )
     mountpoint.mkdir()
     server = subprocess.Popen(
-        [sys.executable, "-m", "semanticfs.cli", "mount", "--db", corpus / "index.lmdb", "--mountpoint", mountpoint]
+        [sys.executable, "-m", "lmdb_fs.cli", "mount", "--db", corpus / "index.lmdb", "--mountpoint", mountpoint]
     )
     try:
         for _ in range(50):
@@ -41,7 +41,7 @@ def test_mounted_semanticfs_supports_normal_reads(tmp_path: Path) -> None:
         forward = sorted(entry.name for entry in (mountpoint / year / disease).iterdir() if entry.is_file())
         reverse = sorted(entry.name for entry in (mountpoint / disease / year).iterdir() if entry.is_file())
         assert forward and forward == reverse
-        assert "SemanticFS reusable synthetic payload" in (mountpoint / year / disease / forward[0]).read_text()
+        assert "lmdb-fs reusable synthetic payload" in (mountpoint / year / disease / forward[0]).read_text()
         with pytest.raises(PermissionError):
             (mountpoint / "cannot-write").touch()
     finally:

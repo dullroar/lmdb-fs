@@ -1,4 +1,4 @@
-# SemanticFS First-Pass Prototype Plan
+# lmdb-fs First-Pass Prototype Plan
 
 ## 0. Mission
 
@@ -25,7 +25,7 @@ means:
     AND disease = COVID
     AND lab = LANL
 
-At every directory, SemanticFS presents:
+At every directory, lmdb-fs presents:
 
 1.  the data nodes/files satisfying all predicates accumulated so far;
     and
@@ -73,7 +73,7 @@ versions in the README.
 
 ### Read-only semantics
 
-SemanticFS is deliberately read-only.
+lmdb-fs is deliberately read-only.
 
 The following should work:
 
@@ -131,7 +131,7 @@ Example:
 
     node_id: 18427
     display_name: experiment-18427.csv
-    payload_path: /home/jim/semanticfs-data/payloads/experiment-18427.csv
+    payload_path: /home/jim/lmdb-fs-data/payloads/experiment-18427.csv
     metadata:
         year: 2026
         disease: COVID
@@ -340,7 +340,7 @@ Keep four conceptual layers separate.
                      | semantic requests
                      v
     +----------------------------------+
-    | SemanticFS query/model layer     |
+    | lmdb-fs query/model layer        |
     | path parsing                     |
     | canonicalization                 |
     | facet rules                      |
@@ -371,14 +371,14 @@ The query/model layer should be testable without mounting a filesystem.
 
 Use something close to:
 
-    semanticfs/
+    lmdb-fs/
         README.md
         plan.md
         pyproject.toml
         .gitignore
 
         src/
-            semanticfs/
+            lmdb_fs/
                 __init__.py
                 cli.py
                 config.py
@@ -830,13 +830,13 @@ Wire the tested semantic layer into pyfuse3.
 
 Verify manually:
 
-    ls /mnt/semanticfs
-    ls /mnt/semanticfs/year=2026
-    ls /mnt/semanticfs/year=2026/disease=COVID
+    ls /mnt/lmdb-fs
+    ls /mnt/lmdb-fs/year=2026
+    ls /mnt/lmdb-fs/year=2026/disease=COVID
 
 Then reverse traversal order:
 
-    ls /mnt/semanticfs/disease=COVID/year=2026
+    ls /mnt/lmdb-fs/disease=COVID/year=2026
 
 Verify matching files are identical.
 
@@ -853,7 +853,7 @@ Add immutable payload files and verify:
     cat
     head
     grep
-    cp FROM semanticfs
+    cp FROM lmdb-fs
     python open()
 
 Work through the mounted filesystem.
@@ -1042,16 +1042,16 @@ parsing decorative human logs if practical.
 
 Aim for a small CLI such as:
 
-    semanticfs build-index \
+    lmdb-fs build-index \
         --metadata data/experiments.jsonl \
         --db data/index.lmdb
 
-    semanticfs mount \
+    lmdb-fs mount \
         --db data/index.lmdb \
-        --mountpoint /mnt/semanticfs
+        --mountpoint /mnt/lmdb-fs
 
-    semanticfs unmount \
-        --mountpoint /mnt/semanticfs
+    lmdb-fs unmount \
+        --mountpoint /mnt/lmdb-fs
 
 Exact syntax may change.
 
@@ -1104,14 +1104,14 @@ Once mounted, create a shell-level smoke test.
 
 Examples:
 
-    test -d /mnt/semanticfs/year=2026
+    test -d /mnt/lmdb-fs/year=2026
 
-    find /mnt/semanticfs/year=2026/disease=COVID \
+    find /mnt/lmdb-fs/year=2026/disease=COVID \
         -maxdepth 1 \
         -type f
 
 Use ordinary filesystem tools deliberately. The entire point is that
-they should work without SemanticFS-aware clients.
+they should work without lmdb-fs-aware clients.
 
 Also test from Python using ordinary `pathlib` and `open()`.
 
@@ -1292,7 +1292,7 @@ This is an experiment in an idea, not an enterprise platform.
 
 The first pass is done when all of the following are true:
 
--   SemanticFS mounts successfully in WSL as an ordinary user.
+-   lmdb-fs mounts successfully in WSL as an ordinary user.
 -   A deterministic synthetic corpus of at least 1 million metadata
     nodes can be indexed.
 -   A user can navigate metadata facets with ordinary `cd`/`ls`.

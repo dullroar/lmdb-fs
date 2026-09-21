@@ -1,4 +1,4 @@
-"""Read-only pyfuse3 adapter over :class:`semanticfs.query.SemanticQuery`."""
+"""Read-only pyfuse3 adapter over :class:`lmdb_fs.query.LMDBFSQuery`."""
 
 from __future__ import annotations
 
@@ -11,14 +11,14 @@ from pathlib import Path
 import pyfuse3
 
 from ..paths import PathError, decode_component
-from ..query import SemanticQuery, virtual_filename
+from ..query import LMDBFSQuery, virtual_filename
 from .inode_table import DirectoryRef, FileRef, InodeTable
 
 
-class SemanticFSOperations(pyfuse3.Operations):
+class LMDBFSOperations(pyfuse3.Operations):
     """Expose faceted query listings as a deliberately read-only filesystem."""
 
-    def __init__(self, query: SemanticQuery, *, stat_path: Path | str = "/") -> None:
+    def __init__(self, query: LMDBFSQuery, *, stat_path: Path | str = "/") -> None:
         super().__init__()
         self.query = query
         self.inodes = InodeTable()

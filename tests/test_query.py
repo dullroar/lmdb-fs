@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from semanticfs.paths import parse_path
+from lmdb_fs.paths import parse_path
 
 
 def test_matching_files_are_visible_at_each_query_level(query) -> None:  # type: ignore[no-untyped-def]

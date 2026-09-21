@@ -4,7 +4,7 @@ from itertools import permutations
 
 from hypothesis import given, strategies as st
 
-from semanticfs.paths import canonicalize
+from lmdb_fs.paths import canonicalize
 
 
 def test_all_permutations_have_identical_results(query) -> None:  # type: ignore[no-untyped-def]

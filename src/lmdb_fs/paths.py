@@ -13,7 +13,7 @@ _PERCENT_ESCAPE = re.compile(r"%(?:[0-9a-fA-F]{2})")
 
 
 class PathError(ValueError):
-    """A path cannot represent a valid SemanticFS query."""
+    """A path cannot represent a valid lmdb-fs query."""
 
 
 def _encode(value: str) -> str:

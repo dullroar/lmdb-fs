@@ -1,4 +1,4 @@
-"""Core immutable types shared by SemanticFS layers."""
+"""Core immutable types shared by lmdb-fs layers."""
 
 from __future__ import annotations
 

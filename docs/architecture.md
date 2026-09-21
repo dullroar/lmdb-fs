@@ -5,14 +5,14 @@ ordinary POSIX programs
         |
      pyfuse3 adapter
         |
-SemanticQuery (paths, predicates, directory construction)
+LMDBFSQuery (paths, predicates, directory construction)
         |
  MetadataBackend protocol
         |
    LMDB inverted index ---- immutable local payload paths
 ```
 
-`SemanticQuery` is deliberately independent of both pyfuse3 and LMDB. It
+`LMDBFSQuery` is deliberately independent of both pyfuse3 and LMDB. It
 receives a canonical predicate set and produces matching virtual files plus
 remaining nonempty facet/value directories. The same query engine is exercised
 against an in-memory inverted-index oracle and the LMDB backend.

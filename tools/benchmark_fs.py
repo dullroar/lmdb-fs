@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Measure ordinary directory enumeration against a mounted SemanticFS path."""
+"""Measure ordinary directory enumeration against a mounted lmdb-fs path."""
 
 from __future__ import annotations
 

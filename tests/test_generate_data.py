@@ -5,7 +5,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from semanticfs.config import read_nodes_jsonl
+from lmdb_fs.config import read_nodes_jsonl
 
 
 def test_generator_is_deterministic_and_correlated(tmp_path) -> None:  # type: ignore[no-untyped-def]

@@ -18,7 +18,7 @@ class HelloFS(pyfuse3.Operations):
 
     file_inode = pyfuse3.ROOT_INODE + 1
     file_name = b"message.txt"
-    contents = b"semanticfs fuse smoke test\\n"
+    contents = b"lmdb-fs fuse smoke test\\n"
 
     async def getattr(self, inode, ctx=None):  # type: ignore[no-untyped-def]
         entry = pyfuse3.EntryAttributes()
@@ -70,7 +70,7 @@ def main() -> None:
     parser.add_argument("mountpoint", type=Path)
     args = parser.parse_args()
     options = set(pyfuse3.default_options)
-    options.add("fsname=semanticfs-smoke")
+    options.add("fsname=lmdb-fs-smoke")
     pyfuse3.init(HelloFS(), os.fspath(args.mountpoint), options)
     try:
         trio.run(pyfuse3.main)

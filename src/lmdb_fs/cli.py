@@ -1,4 +1,4 @@
-"""Command-line entry point for building, mounting, and unmounting SemanticFS."""
+"""Command-line entry point for building, mounting, and unmounting lmdb-fs."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import trio
 
 from .backends.lmdb_backend import LMDBBackend
 from .config import read_nodes_jsonl
-from .fuse.operations import SemanticFSOperations
-from .query import SemanticQuery
+from .fuse.operations import LMDBFSOperations
+from .query import LMDBFSQuery
 
 
 def _map_size_gib(value: str) -> int:
@@ -31,11 +31,11 @@ def _build_index(args: argparse.Namespace) -> int:
 def _mount(args: argparse.Namespace) -> int:
     backend = LMDBBackend(args.db)
     cache_size = 0 if args.no_cache else args.cache_size
-    operations = SemanticFSOperations(
-        SemanticQuery(backend, cache_size=cache_size, cache_max_nodes=args.cache_max_nodes), stat_path=args.db
+    operations = LMDBFSOperations(
+        LMDBFSQuery(backend, cache_size=cache_size, cache_max_nodes=args.cache_max_nodes), stat_path=args.db
     )
     options = set(pyfuse3.default_options)
-    options.add("fsname=semanticfs")
+    options.add("fsname=lmdb-fs")
     if args.debug:
         options.add("debug")
     pyfuse3.init(operations, os.fspath(args.mountpoint), options)
@@ -53,7 +53,7 @@ def _unmount(args: argparse.Namespace) -> int:
 
 
 def parser() -> argparse.ArgumentParser:
-    result = argparse.ArgumentParser(prog="semanticfs", description=__doc__)
+    result = argparse.ArgumentParser(prog="lmdb-fs", description=__doc__)
     commands = result.add_subparsers(dest="command", required=True)
 
     build = commands.add_parser("build-index", help="build an LMDB index from JSONL metadata")
@@ -63,7 +63,7 @@ def parser() -> argparse.ArgumentParser:
     build.add_argument("--replace", action="store_true", help="replace an existing index")
     build.set_defaults(handler=_build_index)
 
-    mount = commands.add_parser("mount", help="mount a read-only SemanticFS index")
+    mount = commands.add_parser("mount", help="mount a read-only lmdb-fs index")
     mount.add_argument("--db", type=Path, required=True)
     mount.add_argument("--mountpoint", type=Path, required=True)
     mount.add_argument("--debug", action="store_true")
@@ -72,7 +72,7 @@ def parser() -> argparse.ArgumentParser:
     mount.add_argument("--no-cache", action="store_true")
     mount.set_defaults(handler=_mount)
 
-    unmount = commands.add_parser("unmount", help="unmount a SemanticFS mount")
+    unmount = commands.add_parser("unmount", help="unmount an lmdb-fs mount")
     unmount.add_argument("--mountpoint", type=Path, required=True)
     unmount.set_defaults(handler=_unmount)
     return result

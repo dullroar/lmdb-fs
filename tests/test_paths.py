@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from semanticfs.paths import PathError, canonicalize, decode_component, encode_component, parse_path
+from lmdb_fs.paths import PathError, canonicalize, decode_component, encode_component, parse_path
 
 
 @pytest.mark.parametrize(

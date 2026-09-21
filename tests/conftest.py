@@ -4,9 +4,9 @@ from pathlib import Path
 
 import pytest
 
-from semanticfs.backends.memory import InMemoryBackend
-from semanticfs.model import Node
-from semanticfs.query import SemanticQuery
+from lmdb_fs.backends.memory import InMemoryBackend
+from lmdb_fs.model import Node
+from lmdb_fs.query import LMDBFSQuery
 
 
 @pytest.fixture
@@ -27,5 +27,5 @@ def backend(nodes: list[Node]) -> InMemoryBackend:
 
 
 @pytest.fixture
-def query(backend: InMemoryBackend) -> SemanticQuery:
-    return SemanticQuery(backend)
+def query(backend: InMemoryBackend) -> LMDBFSQuery:
+    return LMDBFSQuery(backend)

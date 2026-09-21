@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Benchmark SemanticFS query and directory construction without FUSE."""
+"""Benchmark lmdb-fs query and directory construction without FUSE."""
 
 from __future__ import annotations
 
@@ -12,8 +12,8 @@ import time
 from dataclasses import asdict
 from pathlib import Path
 
-from semanticfs.backends.lmdb_backend import LMDBBackend
-from semanticfs.query import SemanticQuery
+from lmdb_fs.backends.lmdb_backend import LMDBBackend
+from lmdb_fs.query import LMDBFSQuery
 
 
 def percentile(values: list[int], point: float) -> int:
@@ -49,7 +49,7 @@ def main() -> None:
             "zero_result": (("year", "0000"),),
         }
         cache_size = 0 if args.no_cache else args.cache_size
-        query = SemanticQuery(backend, cache_size=cache_size, cache_max_nodes=args.cache_max_nodes)
+        query = LMDBFSQuery(backend, cache_size=cache_size, cache_max_nodes=args.cache_max_nodes)
         report: dict[str, object] = {
             "db": str(args.db),
             "index_bytes": index_size(args.db),

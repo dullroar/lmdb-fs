@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from semanticfs.cache import BoundedLRU
-from semanticfs.paths import parse_path
+from lmdb_fs.cache import BoundedLRU
+from lmdb_fs.paths import parse_path
 
 
 def test_bounded_lru_evicts_least_recent_and_counts() -> None:

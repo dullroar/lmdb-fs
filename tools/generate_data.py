@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a deterministic, correlated SemanticFS JSONL corpus."""
+"""Generate a deterministic, correlated lmdb-fs JSONL corpus."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ import random
 from collections.abc import Iterator
 from pathlib import Path
 
-from semanticfs.config import write_nodes_jsonl
-from semanticfs.model import Node
+from lmdb_fs.config import write_nodes_jsonl
+from lmdb_fs.model import Node
 
 DISEASES = ("COVID", "influenza", "cancer", "diabetes", "malaria", "control")
 DISEASE_WEIGHTS = (36, 20, 15, 12, 8, 9)
@@ -85,7 +85,7 @@ def main() -> None:
     payload_dir.mkdir(exist_ok=True)
     payloads = tuple(payload_dir / f"payload-{number:04d}.txt" for number in range(args.payload_count))
     for number, payload in enumerate(payloads):
-        payload.write_text(f"SemanticFS reusable synthetic payload {number}\n", encoding="utf-8")
+        payload.write_text(f"lmdb-fs reusable synthetic payload {number}\n", encoding="utf-8")
     write_nodes_jsonl(args.output / "metadata.jsonl", make_nodes(args.nodes, args.seed, payloads))
     (args.output / "manifest.json").write_text(
         json.dumps(

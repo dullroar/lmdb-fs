@@ -7,13 +7,13 @@ from pathlib import Path
 import pyfuse3
 import pytest
 
-from semanticfs.backends.memory import InMemoryBackend
-from semanticfs.fuse.operations import SemanticFSOperations
-from semanticfs.model import Node
-from semanticfs.query import SemanticQuery
+from lmdb_fs.backends.memory import InMemoryBackend
+from lmdb_fs.fuse.operations import LMDBFSOperations
+from lmdb_fs.model import Node
+from lmdb_fs.query import LMDBFSQuery
 
 
-def _operations(tmp_path: Path) -> SemanticFSOperations:
+def _operations(tmp_path: Path) -> LMDBFSOperations:
     payload = tmp_path / "payload.txt"
     payload.write_text("payload through fuse\n")
     node = Node(
@@ -22,7 +22,7 @@ def _operations(tmp_path: Path) -> SemanticFSOperations:
         payload,
         {"year": "2026", "disease": "COVID", "lab": "LANL"},
     )
-    return SemanticFSOperations(SemanticQuery(InMemoryBackend([node])), stat_path=tmp_path)
+    return LMDBFSOperations(LMDBFSQuery(InMemoryBackend([node])), stat_path=tmp_path)
 
 
 def test_operations_expose_directory_and_payload(tmp_path: Path) -> None:
