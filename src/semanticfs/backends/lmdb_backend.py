@@ -86,12 +86,6 @@ class LMDBBackend(MetadataBackend):
         """Build a new index; refuse replacement unless explicitly requested."""
 
         target = Path(path)
-        node_list = list(nodes)
-        if not node_list:
-            raise ValueError("cannot build an index without nodes")
-        ids = [node.node_id for node in node_list]
-        if len(ids) != len(set(ids)):
-            raise ValueError("node IDs must be unique")
         if target.exists():
             if not replace:
                 raise FileExistsError(f"index already exists: {target}")
@@ -104,27 +98,44 @@ class LMDBBackend(MetadataBackend):
             facet_values_db = env.open_db(b"facet_values", dupsort=True)
             metadata_db = env.open_db(b"metadata")
             facets: set[str] = set()
+            node_count = 0
+            batch: list[Node] = []
+
+            def write_batch(batch_nodes: list[Node]) -> None:
+                nonlocal node_count
+                with env.begin(write=True) as txn:
+                    for node in batch_nodes:
+                        node_count += 1
+                        node_data = {
+                            "node_id": node.node_id,
+                            "display_name": node.display_name,
+                            "payload_path": os.fspath(node.payload_path),
+                            "metadata": dict(sorted(node.metadata.items())),
+                        }
+                        if not txn.put(_node_key(node.node_id), _json(node_data), db=nodes_db, overwrite=False):
+                            raise ValueError(f"duplicate node ID {node.node_id}")
+                        for facet, value in node.metadata.items():
+                            facets.add(facet)
+                            txn.put(
+                                _posting_key(facet, value),
+                                _node_key(node.node_id),
+                                db=postings_db,
+                                dupdata=True,
+                            )
+                            txn.put(_facet_key(facet), value.encode("utf-8"), db=facet_values_db, dupdata=True)
+
+            for node in nodes:
+                batch.append(node)
+                if len(batch) >= 10_000:
+                    write_batch(batch)
+                    batch.clear()
+            if batch:
+                write_batch(batch)
+            if node_count == 0:
+                raise ValueError("cannot build an index without nodes")
             with env.begin(write=True) as txn:
-                for node in node_list:
-                    node_data = {
-                        "node_id": node.node_id,
-                        "display_name": node.display_name,
-                        "payload_path": os.fspath(node.payload_path),
-                        "metadata": dict(sorted(node.metadata.items())),
-                    }
-                    if not txn.put(_node_key(node.node_id), _json(node_data), db=nodes_db, overwrite=False):
-                        raise ValueError(f"duplicate node ID {node.node_id}")
-                    for facet, value in node.metadata.items():
-                        facets.add(facet)
-                        txn.put(
-                            _posting_key(facet, value),
-                            _node_key(node.node_id),
-                            db=postings_db,
-                            dupdata=True,
-                        )
-                        txn.put(_facet_key(facet), value.encode("utf-8"), db=facet_values_db, dupdata=True)
                 txn.put(_META_FACETS, _json(sorted(facets)), db=metadata_db)
-                txn.put(b"node_count", str(len(node_list)).encode("ascii"), db=metadata_db)
+                txn.put(b"node_count", str(node_count).encode("ascii"), db=metadata_db)
         finally:
             env.close()
 

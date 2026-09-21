@@ -47,3 +47,34 @@ uv run pytest
 
 Generated payloads and LMDB environments belong under `data/` and are ignored
 by Git.
+
+## Build and mount a corpus
+
+```bash
+uv run python tools/generate_data.py --nodes 10000 --output /tmp/semanticfs-corpus
+uv run semanticfs build-index \
+  --metadata /tmp/semanticfs-corpus/metadata.jsonl \
+  --db /tmp/semanticfs-corpus/index.lmdb
+mkdir /tmp/semanticfs-mount
+uv run semanticfs mount \
+  --db /tmp/semanticfs-corpus/index.lmdb \
+  --mountpoint /tmp/semanticfs-mount
+```
+
+In another shell, ordinary tools can use it directly:
+
+```bash
+ls /tmp/semanticfs-mount/year=2026
+find /tmp/semanticfs-mount/year=2026/disease=COVID -maxdepth 1 -type f
+```
+
+Stop the foreground mount with `Ctrl-C`, or run
+`uv run semanticfs unmount --mountpoint /tmp/semanticfs-mount`. If a process
+crashes, use `fusermount3 -u /tmp/semanticfs-mount`; `-uz` is the deliberate
+lazy-unmount recovery option when no process remains responsive.
+
+The full real-mount test is intentionally opt-in:
+
+```bash
+SEMANTICFS_RUN_FUSE_TESTS=1 uv run pytest -m integration
+```

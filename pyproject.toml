@@ -28,3 +28,6 @@ packages = ["src/semanticfs"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra"
+markers = [
+    "integration: requires a visible /dev/fuse and performs a temporary mount",
+]
