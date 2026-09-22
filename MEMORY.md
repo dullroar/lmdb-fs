@@ -1,29 +1,10 @@
-# Project Memory
+# MEMORY.md
 
-> Version-controlled, cross-LLM continuity notes. Keep this file compact, factual, and useful to a future contributor.
+Non-obvious findings about this codebase and its operating environment, discovered during work but not designed for anywhere else — not in README.md (what it is and how to use it), DESIGN.md (architectural decisions), or agent-instruction files (rules). This is background context for whichever LLM works in this repository next, so it does not have to rediscover these findings the hard way.
 
-## Current context
+If you (an LLM) make a finding like the ones below — a gotcha, an environment quirk, or a non-obvious reason one component reads or uses another — add it here rather than only mentioning it in chat. Keep entries factual and dated; note when something might have been fixed since.
 
-- lmdb-fs is a read-only, faceted filesystem implemented with LMDB and pyfuse3.
-- Its interface models the filesystem as a UI: paths accumulate predicates over immutable, scientific-style data.
+## Findings
 
-## Durable implementation facts
-
-- Facet/value postings use duplicate-sorted LMDB records. For an intersection, count postings, enumerate the smallest list, and probe the others.
-- Facets already used in a path disappear from the next directory level. This prevents repeated-facet loops and bounds traversal depth.
-- Broad directory listing is result materialization, not an index-intersection benchmark. Snapshot entries once per open handle rather than recomputing a large listing for each paged callback.
-- Bound cached results with cache_max_nodes=10_000. Use --no-cache or --cache-size 0 for comparison runs.
-- Final public identifiers are Python package lmdb_fs, executable lmdb-fs, and console script lmdb-fs = "lmdb_fs.cli:main".
-- DESIGN.md documents the current LMDB implementation and the LDAP/ScienceXchange lineage.
-
-## Verified workflow
-
-- 2026-09-20: uv sync --locked --all-groups, uv run pytest -q, the opt-in FUSE integration test, and uv run lmdb-fs --help all passed. The regular suite reported 29 passes with one non-opt-in integration test skipped.
-
-## Decisions
-
-- Preserve read-only semantics and ordinary filesystem-tool access; do not broaden the project into a general writable filesystem.
-
-## Open questions
-
-- None recorded.
+- 2026-09-20 — In this WSL environment, FUSE was initially unavailable: /dev/fuse was absent and pyfuse3 could not build. Before diagnosing application code, confirm that FUSE is enabled, libfuse3-dev and pkg-config are installed, and /dev/fuse is character device 10:229. Recheck on a new host.
+- 2026-09-20 — A broad mounted-directory readdir measures result materialization, not LMDB intersection performance: 131,782 entries took about 4.83 seconds. Snapshot directory entries once per open handle; recalculating a million-entry listing for each paged callback is pathological.
