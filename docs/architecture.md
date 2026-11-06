@@ -1,3 +1,7 @@
+---
+gist: "Read when: changing the FUSE adapter, LMDBFSQuery, the MetadataBackend protocol or the LMDB index layout."
+---
+
 # Architecture
 
 ```text
