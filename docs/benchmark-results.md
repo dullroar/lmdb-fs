@@ -1,3 +1,7 @@
+---
+gist: "Read when: judging query or directory-enumeration performance, changing caching, or comparing a backend against recorded measurements."
+---
+
 # Benchmark results
 
 This document records measured runs, not aspirational targets. The figures

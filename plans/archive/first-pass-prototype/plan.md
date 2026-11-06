@@ -131,7 +131,7 @@ Example:
 
     node_id: 18427
     display_name: experiment-18427.csv
-    payload_path: /home/jim/lmdb-fs-data/payloads/experiment-18427.csv
+    payload_path: /path/to/lmdb-fs-data/payloads/experiment-18427.csv
     metadata:
         year: 2026
         disease: COVID

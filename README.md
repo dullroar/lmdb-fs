@@ -8,7 +8,7 @@ physical directory hierarchy.
 The Python import package is `lmdb_fs`; the command is `lmdb-fs`. Hyphens are
 valid and conventional in command names, while Python imports use underscores.
 The name deliberately states the current implementation boundary: LMDB indexes
-are projected through FUSE. [`DESIGN.md`](DESIGN.md) records the older LDAP and
+are projected through FUSE. [docs/design/](docs/design/README.md) records the older LDAP and
 ScienceXchange lineage that made this design worth revisiting.
 
 ## Status
