@@ -72,7 +72,7 @@ in a temporary directory and reads it through a real mount. A skip fails the
 mount gate. The script removes the test containers and its image tag on exit.
 
 The full gate needs access to a Linux Docker daemon whose host exposes
-`/dev/fuse`. The mount container uses `--device /dev/fuse` and
+`/dev/fuse`. The mount test runs as the container's root user so it can unmount reliably. The core test runs as the image's normal user. The mount container uses `--device /dev/fuse` and
 `--cap-add SYS_ADMIN`. When the daemon reports AppArmor, the script also uses
 `--security-opt apparmor=unconfined` for the mount container. For Docker under
 WSL, check that the daemon can see the device in its own environment.

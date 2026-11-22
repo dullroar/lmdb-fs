@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import errno
 import os
 import subprocess
 import sys
@@ -42,8 +43,11 @@ def test_mounted_lmdb_fs_supports_normal_reads(tmp_path: Path) -> None:
         reverse = sorted(entry.name for entry in (mountpoint / disease / year).iterdir() if entry.is_file())
         assert forward and forward == reverse
         assert "lmdb-fs reusable synthetic payload" in (mountpoint / year / disease / forward[0]).read_text()
-        with pytest.raises(PermissionError):
-            (mountpoint / "cannot-write").touch()
+        target = mountpoint / "cannot-write"
+        with pytest.raises(OSError) as error:
+            target.touch()
+        assert error.value.errno in (errno.EACCES, errno.EPERM, errno.EROFS)
+        assert not target.exists()
     finally:
         if os.path.ismount(mountpoint):
             subprocess.run(["fusermount3", "-u", mountpoint], check=True)
