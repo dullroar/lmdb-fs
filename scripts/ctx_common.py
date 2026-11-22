@@ -1,21 +1,30 @@
-"""Shared helpers for the context-governance scripts (standard library only)."""
+"""Shared helpers for the context checks (standard library only).
+
+Run me when: an index or checker needs shared parsing or file discovery. Import this module.
+"""
 from __future__ import annotations
 
 import re
 import subprocess
 from pathlib import Path
 
-BEGIN = "<!-- BEGIN GENERATED CONTEXT INDEX -->"
-END = "<!-- END GENERATED CONTEXT INDEX -->"
+BEGIN = "<!-- BEGIN GENERATED INDEX -->"
+END = "<!-- END GENERATED INDEX -->"
+LEGACY_BEGIN = "<!-- BEGIN GENERATED CONTEXT INDEX -->"
+LEGACY_END = "<!-- END GENERATED CONTEXT INDEX -->"
 SKIP_DIRS = {".git", ".venv", "node_modules", "build", "dist", "__pycache__", ".hypothesis"}
 
 
 def repo_root(start: Path | None = None) -> Path:
     here = (start or Path.cwd()).resolve()
-    for candidate in [here, *here.parents]:
-        if (candidate / ".git").exists():
-            return candidate
-    return here
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--show-toplevel"],
+            cwd=here, capture_output=True, text=True, check=True,
+        )
+    except (OSError, subprocess.CalledProcessError):
+        return here
+    return Path(result.stdout.strip())
 
 
 def markdown_files(root: Path) -> list[Path]:
