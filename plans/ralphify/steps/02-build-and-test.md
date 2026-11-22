@@ -27,3 +27,15 @@ Touches `Dockerfile`, `.dockerignore`, `README.md`, `scripts/test_docker.sh`, ge
 ## Repository gate
 
 Use `uv.lock` and the existing FUSE 3 build dependencies. Run `uv run --locked pytest -m 'not integration'` and run `LMDB_FS_RUN_FUSE_TESTS=1 uv run --locked pytest -m integration` in a FUSE-capable Docker invocation. Verify reads through the real mount over its generated test corpus and require a passing test with no mount-test skip. Apply the same device-free core test and disposable mount rules as `duckdb-fs`. Preserve the `tools/` entry points and host mount instructions.
+
+## Validation evidence
+
+The step gate passed on 2026-11-22 UTC. The Docker image built from the
+linked worktree with `uv sync --locked`. The container and host context
+checks passed. `git diff --check` reported no errors.
+
+- Core tests without a FUSE device passed 29 tests and deselected the mount
+  test.
+- The real FUSE mount test passed with zero skips and deselected 29 core
+  tests. It read a generated payload through the mount and checked that the
+  mount rejected writes.
