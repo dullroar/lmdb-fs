@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Run every context-governance check. Usage: check_context.py [ROOT]"""
+"""Run every context check.
+
+Run me when: I changed a context file or a script.
+Usage: check_context.py [ROOT]
+"""
 from __future__ import annotations
 
 import subprocess
@@ -8,10 +12,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 CHECKS = [
-    ["build_context_indexes.py", "--check"],
+    ["build_indexes.py", "--check"],
     ["check_plan.py"],
     ["check_links.py"],
-    ["scan_context_secrets.py"],
+    ["scan_secrets.py"],
 ]
 
 
