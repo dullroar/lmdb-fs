@@ -24,10 +24,32 @@ Run `git merge-base HEAD plan/ralphify` to identify the integrated base commit. 
 
 ## Results
 
-- Base commit: PENDING
-- Commands: PENDING
-- Docker build: PENDING
-- Tests: PENDING
-- Skips: PENDING
-- FUSE: PENDING
-- UTC date: PENDING
+- Base commit: `07bc8599cb1b2306d4de63deaccbc4c998725b1d`, from
+  `git merge-base HEAD plan/ralphify`.
+- Commands: PASS `python3 scripts/check_context.py && bash scripts/test_docker.sh && git diff --check`.
+  The context check also passed in the core container. The sandbox denied
+  access to the Docker socket on the first run. The same gate passed with
+  Docker daemon access.
+- Docker build: PASS `lmdb-fs-test:TrnarqqL` built from the indexed source
+  snapshot. The build installed the FUSE 3 dependencies and ran
+  `uv sync --locked`.
+- Tests: PASS `uv run --offline --locked pytest -m 'not integration'`
+  passed 29 tests and deselected 1. With `LMDB_FS_RUN_FUSE_TESTS=1`,
+  `uv run --offline --locked pytest -m integration` passed 1 test and
+  deselected 29.
+- Skips: PASS Both containers reported zero skips. The mount test is
+  deselected in the core container and skips by design in an unfiltered run
+  without `LMDB_FS_RUN_FUSE_TESTS=1`.
+- FUSE: PASS The disposable container used `--device /dev/fuse` and
+  `--cap-add SYS_ADMIN`. The test generated a 100-node corpus, built the
+  index, and mounted it. It found the same files in both predicate orders,
+  read a synthetic payload, observed write rejection, and unmounted.
+- UTC date: 2026-11-22.
+
+Both upstream links in `AGENTS.md` resolved to their repository READMEs.
+The structural-change rule names the layout, plan format, generated indexes,
+worktree rules, and validation commands. The README Docker commands match
+the Dockerfile and test script. Its Ralph command uses the arguments in the
+upstream runner README. The documented host mount and unmount instructions,
+the `lmdb-fs` entry point, and the tracked `tools/` entry points match
+the pre-migration tree.
