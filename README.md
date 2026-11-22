@@ -51,6 +51,39 @@ uv run pytest
 Generated payloads and LMDB environments belong under `data/` and are ignored
 by Git.
 
+## Build and test in Docker
+
+Run these commands from the repository root:
+
+```bash
+docker build --tag lmdb-fs:local .
+bash scripts/test_docker.sh
+```
+
+The test script builds a fresh image from the current contents of indexed
+files. Stage new files and deletions before you run it. The build uses
+`uv.lock` and installs FUSE 3 build dependencies. Build steps need access to
+package registries. Tests run as an ordinary container user with the container
+network disabled.
+
+The core container checks the source snapshot and runs the non-integration
+tests without a FUSE device. The mount container generates a synthetic corpus
+in a temporary directory and reads it through a real mount. A skip fails the
+mount gate. The script removes the test containers and its image tag on exit.
+
+The full gate needs access to a Linux Docker daemon whose host exposes
+`/dev/fuse`. The mount container uses `--device /dev/fuse` and
+`--cap-add SYS_ADMIN`. When the daemon reports AppArmor, the script also uses
+`--security-opt apparmor=unconfined` for the mount container. For Docker under
+WSL, check that the daemon can see the device in its own environment.
+
+To run the migration plan from a checkout with the plan committed, use
+[ralph-looper](https://github.com/dullroar/ralph-looper):
+
+```bash
+ralph-looper --repo "$PWD" --plan ralphify --agent codex
+```
+
 ## Build and mount a corpus
 
 ```bash
