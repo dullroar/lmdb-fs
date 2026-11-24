@@ -1,6 +1,6 @@
 ---
 id: a04-verify
-status: pending
+status: in_progress
 depends_on: [a03-probes]
 touches:
   - plans/adopt-controls/steps/a04-verify.md
@@ -10,7 +10,7 @@ gate: d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT && git clone -q . "$d/clone" && 
 requirements: [R4]
 claimed_by: ""
 claimed_at: ""
-evidence: ""
+evidence: "2026-11-24 UTC, in the worktree: `python3 scripts/secret_guard.py --history` 0 findings (exit 0); `python3 scripts/check_context.py` all checks ok (exit 0); `python3 scripts/build_indexes.py --check` exit 0; `python3 scripts/secret_guard.py --tracked` 0 findings (exit 0); `bash scripts/install_hooks.sh --self-test` ok (exit 0). Host pytest not run: the session denied `uv` (test count unavailable). Clean-clone and Docker/FUSE checks run in the gate only."
 ---
 
 # Verify the full gates from a clean clone
@@ -46,4 +46,7 @@ After the operator merges this plan, the operator runs `bash scripts/install_hoo
 
 ## Resume notes
 
-(none)
+history-findings=0
+
+- The clean-clone checks and the Docker and FUSE run ran in the gate, not in this session. This session reports no Docker result.
+- The host pytest run (`uv run --offline --locked pytest -m 'not integration'`) did not run. The session denied the `uv` command twice. The driver gate and the Docker core run cover this test set.
