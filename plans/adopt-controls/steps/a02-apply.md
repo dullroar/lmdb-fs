@@ -1,6 +1,6 @@
 ---
 id: a02-apply
-status: pending
+status: in_progress
 depends_on: [a01-audit]
 touches:
   - scripts/check_context.py
@@ -60,4 +60,6 @@ If you cannot finish, write "Resume notes" below. Keep the status `in_progress`.
 
 ## Resume notes
 
-(none)
+Work is complete. Not run in this session: `bash scripts/test_docker.sh` (no Docker). Run in this session and passed: `check_context.py`, `build_indexes.py --check`, `secret_guard.py --tracked`, `git diff --check`, and the grep checks.
+
+Open issue for the driver or operator: `.dockerignore` does not list `controls.toml`, so the file is not in the image. `.dockerignore` is outside `touches`. See `docs/controls-adoption.md`. The shim still runs in the image with the default configuration.
