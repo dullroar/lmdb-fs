@@ -1,6 +1,6 @@
 ---
 id: a02-apply
-status: pending
+status: done
 depends_on: [a01-audit]
 touches:
   - scripts/check_context.py
@@ -17,9 +17,9 @@ touches:
 lane: none
 gate: python3 scripts/check_context.py && python3 scripts/build_indexes.py --check && python3 scripts/secret_guard.py --tracked && grep -q '3a2e9f3d95136958c54f73c831e84b971fc9a054' scripts/controls-requirements.txt && test -s controls.toml && grep -q '^  check:' .github/workflows/context.yml && grep -q '^  docker:' .github/workflows/context.yml && grep -q 'secret_guard.py --tracked' .github/workflows/context.yml && ! grep -q 'continue-on-error' .github/workflows/context.yml && ! grep 'uses:' .github/workflows/context.yml | grep -vqE '@[0-9a-f]{40}' && grep -q 'cheapest executor' AGENTS.md && grep -q 'controls-adoption.md' docs/README.md && bash scripts/test_docker.sh && git diff --check
 requirements: [R2]
-claimed_by: ""
-claimed_at: ""
-evidence: ""
+claimed_by: claude cli-default
+claimed_at: "2026-11-24T14:30:20Z"
+evidence: gate passed 2026-11-24 (driver-verified)
 ---
 
 # Adopt the pinned library in advisory mode
@@ -60,4 +60,6 @@ If you cannot finish, write "Resume notes" below. Keep the status `in_progress`.
 
 ## Resume notes
 
-(none)
+Work is complete. Not run in this session: `bash scripts/test_docker.sh` (no Docker). Run in this session and passed: `check_context.py`, `build_indexes.py --check`, `secret_guard.py --tracked`, `git diff --check`, and the grep checks.
+
+Open issue for the driver or operator: `.dockerignore` does not list `controls.toml`, so the file is not in the image. `.dockerignore` is outside `touches`. See `docs/controls-adoption.md`. The shim still runs in the image with the default configuration.
